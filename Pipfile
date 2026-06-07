@@ -1,0 +1,32 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+fastapi = "==0.135.1"
+uvicorn = "==0.41.0"
+gunicorn = "==25.1.0"
+SQLAlchemy = "==2.0.48"
+alembic = "==1.18.4"
+psycopg2-binary = "==2.9.11"
+pydantic = "==2.12.5"
+pydantic-settings = "==2.13.1"
+python-dotenv = "==1.2.2"
+stripe = "==14.0.1"
+httpx = "<0.28,>=0.24"
+
+[dev-packages]
+pytest = "*"
+pytest-mock = "*"
+docker = "==7.1.0"
+httpx = "*"
+
+[requires]
+python_version = "3.11"
+
+[scripts]
+test = "pytest -q"
+test-unit = "pytest -q -m unit"
+test-local = "pytest -q -m 'not docker'"
+test-docker = "pytest -q --run-docker -m docker"

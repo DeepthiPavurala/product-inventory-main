@@ -1,0 +1,50 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+local_inventory.db
+test.db
+
+# Reports
+reports/
+htmlcov/
+.coverage
+allure-results/
+allure-report/
+pytest-report.html
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Frontend dependencies/build
+node_modules/
+frontend/node_modules/
+frontend/build/
+
+# Docker local overrides
+docker-compose.override.yml

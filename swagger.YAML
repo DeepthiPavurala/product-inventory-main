@@ -1,0 +1,557 @@
+openapi: 3.0.3
+
+info:
+  title: Product Inventory API
+  description: |
+    REST API for managing products in an inventory system.
+    Supports CRUD operations, pagination, sorting, filtering, category lookup,
+    soft delete, stock adjustment, and checkout session creation.
+  version: 1.0.0
+  contact:
+    name: Deepthi
+    email: deepthipavurala@gmail.com
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Development Server
+
+tags:
+  - name: Products
+    description: Product inventory operations
+  - name: Payments
+    description: Payment checkout operations
+  - name: System
+    description: Health and root endpoints
+
+paths:
+  /products:
+    post:
+      summary: Create a new product
+      tags:
+        - Products
+      operationId: createProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreate"
+      responses:
+        "201":
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "400":
+          description: Duplicate product or business validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+
+    get:
+      summary: List products with pagination, filtering, searching, and sorting
+      tags:
+        - Products
+      operationId: listProducts
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Page number. Must be greater than or equal to 1.
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: limit
+          in: query
+          required: false
+          description: Number of products per page. Must be greater than or equal to 1.
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+
+        - name: search
+          in: query
+          required: false
+          description: Search term used against product id, name, description, or category.
+          schema:
+            type: string
+
+        - name: category
+          in: query
+          required: false
+          description: Exact product category filter.
+          schema:
+            type: string
+
+        - name: sort_by
+          in: query
+          required: false
+          description: Field used for sorting.
+          schema:
+            type: string
+            enum:
+              - id
+              - name
+              - category
+              - price
+              - quantity
+              - created_at
+            default: created_at
+
+        - name: sort_order
+          in: query
+          required: false
+          description: Sort direction.
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: asc
+
+      responses:
+        "200":
+          description: Paginated product list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedProducts"
+        "422":
+          description: Query parameter validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+
+  /products/categories:
+    get:
+      summary: Get unique product categories
+      tags:
+        - Products
+      operationId: getUniqueCategories
+      responses:
+        "200":
+          description: List of existing unique product categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+
+  /products/{product_id}:
+    get:
+      summary: Get product by id
+      tags:
+        - Products
+      operationId: getProductById
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: Product id.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      summary: Update a product
+      tags:
+        - Products
+      operationId: updateProduct
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: Product id.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+
+    delete:
+      summary: Soft delete a product
+      tags:
+        - Products
+      operationId: softDeleteProduct
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: Product id.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDeleteResponse"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /products/{product_id}/stock:
+    patch:
+      summary: Adjust product stock
+      tags:
+        - Products
+      operationId: adjustProductStock
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: Product id.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StockAdjustment"
+      responses:
+        "200":
+          description: Stock adjusted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockResponse"
+        "400":
+          description: Stock adjustment would make inventory negative
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+
+  /payments/checkout:
+    post:
+      summary: Create checkout session
+      tags:
+        - Payments
+      operationId: createCheckoutSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckoutSessionRequest"
+      responses:
+        "200":
+          description: Checkout session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSessionResponse"
+        "422":
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+
+components:
+  schemas:
+    ProductCreate:
+      type: object
+      required:
+        - name
+        - description
+        - category
+        - price
+        - quantity
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: Wireless Mouse
+        description:
+          type: string
+          minLength: 1
+          example: Ergonomic wireless mouse
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Electronics
+        price:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          example: 29.99
+        quantity:
+          type: integer
+          minimum: 0
+          example: 25
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: Updated Wireless Mouse
+        description:
+          type: string
+          minLength: 1
+          example: Updated ergonomic wireless mouse
+        category:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Accessories
+        price:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          example: 34.99
+        quantity:
+          type: integer
+          minimum: 0
+          example: 30
+
+    ProductResponse:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - category
+        - price
+        - quantity
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          example: 9b7c0a4e-f4cc-47ff-a24a-4c4e6d69c999
+        name:
+          type: string
+          example: Wireless Mouse
+        description:
+          type: string
+          example: Ergonomic wireless mouse
+        category:
+          type: string
+          example: Electronics
+        price:
+          type: number
+          format: float
+          minimum: 0
+          exclusiveMinimum: true
+          example: 29.99
+        quantity:
+          type: integer
+          minimum: 0
+          example: 25
+        is_active:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-06-06T19:10:12Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-06-06T19:10:12Z"
+
+    PaginatedProducts:
+      type: object
+      required:
+        - total
+        - page
+        - limit
+        - total_pages
+        - data
+      properties:
+        total:
+          type: integer
+          minimum: 0
+          example: 25
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        limit:
+          type: integer
+          minimum: 1
+          example: 10
+        total_pages:
+          type: integer
+          minimum: 0
+          example: 3
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductResponse"
+
+    ProductDeleteResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Product deleted
+
+    StockAdjustment:
+      type: object
+      required:
+        - delta
+      properties:
+        delta:
+          type: integer
+          description: Quantity change. Positive increases stock, negative decreases stock.
+          example: -2
+
+    StockResponse:
+      type: object
+      required:
+        - id
+        - name
+        - quantity
+        - low_stock_alert_sent
+      properties:
+        id:
+          type: string
+          example: 9b7c0a4e-f4cc-47ff-a24a-4c4e6d69c999
+        name:
+          type: string
+          example: Wireless Mouse
+        quantity:
+          type: integer
+          minimum: 0
+          example: 3
+        low_stock_alert_sent:
+          type: boolean
+          example: true
+
+    CheckoutSessionRequest:
+      type: object
+      required:
+        - product_id
+        - quantity
+      properties:
+        product_id:
+          type: string
+          example: 9b7c0a4e-f4cc-47ff-a24a-4c4e6d69c999
+        quantity:
+          type: integer
+          minimum: 1
+          example: 1
+
+    CheckoutSessionResponse:
+      type: object
+      required:
+        - checkout_url
+      properties:
+        checkout_url:
+          type: string
+          format: uri
+          example: https://checkout.stripe.com/c/pay/cs_test_123
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                $ref: "#/components/schemas/ValidationError"
+
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: "#/components/schemas/ValidationError"
+
+    ValidationError:
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        type:
+          type: string
