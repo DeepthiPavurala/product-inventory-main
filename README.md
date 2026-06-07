@@ -679,6 +679,23 @@ pytest -k "create_product" -v
 pytest --run-docker -v
 ```
 
+### Generate Pytest HTML Report
+
+This project supports HTML test report generation using `pytest-html`.
+
+Install the reporting dependency if it is not already installed:
+
+```bash
+pip install pytest-html
+```
+Run the full test suite with an HTML report:
+```bash
+./scripts/run_tests_with_reports.sh
+```
+The script runs the Docker-backed test suite and generates the report at:
+```
+reports/pytest_report.html
+````
 The Docker-backed test mode starts a PostgreSQL test container and a backend test container using the Docker SDK.
 
 ---

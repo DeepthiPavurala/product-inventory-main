@@ -15,6 +15,7 @@ pydantic-settings = "==2.13.1"
 python-dotenv = "==1.2.2"
 stripe = "==14.0.1"
 httpx = "<0.28,>=0.24"
+pytest-html = "*"
 
 [dev-packages]
 pytest = "*"
